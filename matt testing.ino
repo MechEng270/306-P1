@@ -3,17 +3,17 @@ int E1 = 5;
 int M1 = 4;
 int E2 = 6;
 int M2 = 7;
-int left = 13;
-int right =12;
-int bottom = 11;
-int top =10;
+int left = 18;
+int right = 19;
+int bottom = 3;
+int top =2;
 
 bool L, R, B, T = 0;
 
 
 
-volatile int countL;
-volatile int countR;
+volatile int countL = 0;
+volatile int countR = 0;
 volatile bool dir;
 
 volatile bool SetLeft = true;
@@ -21,36 +21,49 @@ volatile bool SetBottom = true;
 
 void setup()
 {
-  Serial.begin(9600);
+Serial.begin(9600);
 pinMode(M1, OUTPUT);
 pinMode(M2, OUTPUT);
+pinMode(18, INPUT_PULLUP);
+pinMode(19, INPUT_PULLUP);
 pinMode(21, INPUT_PULLUP);
 pinMode(20, INPUT_PULLUP);
 attachInterrupt(digitalPinToInterrupt(21), countA, RISING);
 attachInterrupt(digitalPinToInterrupt(20), countB, RISING);
+attachInterrupt(digitalPinToInterrupt(left), safeL, HIGH);
+attachInterrupt(digitalPinToInterrupt(right), safeR, HIGH);
+attachInterrupt(digitalPinToInterrupt(bottom), safeB, HIGH);
+attachInterrupt(digitalPinToInterrupt(top), safeT, HIGH);
 
 
-
-countL = 0;
-countR = 0;
 }
 void loop()
 {
+ 
+    // digitalWrite(M1, LOW);
+    // digitalWrite(M2, LOW);
+    // analogWrite(E1, 255); //PWM Speed Control
+    // analogWrite(E2, 255);
 
+// digitalWrite(M1,HIGH);
+// digitalWrite(M2,LOW);
+// analogWrite(E1, 0); //PWM Speed Control
+// analogWrite(E2, 0); //PWM Speed Control
 
-while((countL <= 0)&&(SetLeft)){
-digitalWrite(M1,HIGH);
-digitalWrite(M2,HIGH);
-analogWrite(E1, 100); //PWM Speed Control
-analogWrite(E2, 100); //PWM Speed Control
+while(SetLeft){
+  digitalWrite(M1,HIGH);
+  digitalWrite(M2,HIGH);
+  analogWrite(E1, 100); //PWM Speed Control
+  analogWrite(E2, 100); //PWM Speed Control
+  Serial.println("going left");
 }
 
-
-while((countR <= 0)&&(SetBottom)){
-digitalWrite(M1,LOW);
-digitalWrite(M2,HIGH);
-analogWrite(E1, 100); //PWM Speed Control
-analogWrite(E2, 100); //PWM Speed Control
+while(SetBottom){
+  digitalWrite(M1,HIGH);
+  digitalWrite(M2, LOW);
+  analogWrite(E1, 100); //PWM Speed Control
+  analogWrite(E2, 100); //PWM Speed Control
+  Serial.println("going butt");
 }
 
 
@@ -102,10 +115,22 @@ analogWrite(E2, 100); //PWM Speed Control
 
 }
 
+// void Rectangle(Width,Height){
+
+//   W =  Width*
+//   H = Height*
+
+// }
+
+
+
+
+
+
 
 void safeR(){
   while(digitalRead(right)){
-    digitalWrite(M1,HIGH);
+    digitalWrite(M1, HIGH);
     digitalWrite(M2, HIGH);
     analogWrite(E1, 255); //PWM Speed Control
     analogWrite(E2, 255); 
@@ -125,8 +150,7 @@ void safeL(){
   }
   analogWrite(E1, 0); //PWM Speed Control
   analogWrite(E2, 0); 
-  countL = 0;
-  countR = 0;
+ 
   SetLeft = false;
   //Serial.println(count); 
 }
@@ -139,8 +163,7 @@ void safeB(){
   }
   analogWrite(E1, 0); //PWM Speed Control
   analogWrite(E2, 0); 
-  countL = 0;
-  countR = 0;
+  
   SetBottom = false;
 }
 void safeT(){
