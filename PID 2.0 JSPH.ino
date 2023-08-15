@@ -6,7 +6,7 @@ int M2 = 7;
 int left = 18;
 int right = 19;
 int bottom = 3;
-int top =2;
+int top = 2;
 bool PID = true;
 int x = 0;
 int y = 0;
@@ -20,59 +20,59 @@ volatile bool SetBottom = true;
 volatile bool SetRight = true;
 volatile bool SetUp = true;
 
-void setup()
-{
-Serial.begin(9600);
-pinMode(M1, OUTPUT);
-pinMode(M2, OUTPUT);
-pinMode(18, INPUT_PULLUP);
-pinMode(19, INPUT_PULLUP);
-pinMode(21, INPUT_PULLUP);
-pinMode(20, INPUT_PULLUP);
-attachInterrupt(digitalPinToInterrupt(21), countA, RISING);
-attachInterrupt(digitalPinToInterrupt(20), countB, RISING);
-attachInterrupt(digitalPinToInterrupt(left), safeL, HIGH);
-attachInterrupt(digitalPinToInterrupt(right), safeR, HIGH);
-attachInterrupt(digitalPinToInterrupt(bottom), safeB, HIGH);
-attachInterrupt(digitalPinToInterrupt(top), safeT, HIGH);
-homie();
-
-countL = 0;
-countR = 0;
-PIDcircle(3000,3000);
 
 
+void setup() {
+  Serial.begin(9600);
+  pinMode(M1, OUTPUT);
+  pinMode(M2, OUTPUT);
+  pinMode(18, INPUT_PULLUP);
+  pinMode(19, INPUT_PULLUP);
+  pinMode(21, INPUT_PULLUP);
+  pinMode(20, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(21), countA, RISING);
+  attachInterrupt(digitalPinToInterrupt(20), countB, RISING);
+  attachInterrupt(digitalPinToInterrupt(left), safeL, HIGH);
+  attachInterrupt(digitalPinToInterrupt(right), safeR, HIGH);
+  attachInterrupt(digitalPinToInterrupt(bottom), safeB, HIGH);
+  attachInterrupt(digitalPinToInterrupt(top), safeT, HIGH);
+  homie();
+
+  countL = 0;
+  countR = 0;
+  PIDcircle(1000, 1500);
 
 
-//circle(2000,3000,3000.0);
-//PIDtest();
-//SetRight = 1;
+
+
+  //circle(2000,3000,3000.0);
+  //PIDtest();
+  //SetRight = 1;
 }
-void loop()
-{
+void loop() {
   digitalWrite(M1, LOW);
   digitalWrite(M2, LOW);
-  analogWrite(E1, 0); //PWM Speed Control
+  analogWrite(E1, 0);  //PWM Speed Control
   analogWrite(E2, 0);
 }
 
 //HOMING AND INITALISATION
-void homie(){
-while(SetLeft){
-  digitalWrite(M1,HIGH);
-  digitalWrite(M2,HIGH);
-  analogWrite(E1, 100); //PWM Speed Control
-  analogWrite(E2, 100); //PWM Speed Control
-  Serial.println("going left");
-}
+void homie() {
+  while (SetLeft) {
+    digitalWrite(M1, HIGH);
+    digitalWrite(M2, HIGH);
+    analogWrite(E1, 100);  //PWM Speed Control
+    analogWrite(E2, 100);  //PWM Speed Control
+    Serial.println("going left");
+  }
 
-while(SetBottom){
-  digitalWrite(M1,HIGH);
-  digitalWrite(M2, LOW);
-  analogWrite(E1, 100); //PWM Speed Control
-  analogWrite(E2, 100); //PWM Speed Control
-  Serial.println("going butt");
-}
+  while (SetBottom) {
+    digitalWrite(M1, HIGH);
+    digitalWrite(M2, LOW);
+    analogWrite(E1, 100);  //PWM Speed Control
+    analogWrite(E2, 100);  //PWM Speed Control
+    Serial.println("going butt");
+  }
 }
 
 /*void circle(float diameter, float xIn, float yIn){
@@ -117,7 +117,7 @@ delay(100);
 // }
 // for (i=0;i<res;i++){
 // x1 =  r * sin(i*1.571/res);
-// y1 = sqrt(r*r - x1*x1); 
+// y1 = sqrt(r*r - x1*x1);
 // PIDtest(xIn-x1,yIn - r + y1);
 // while(PID)
 // {
@@ -138,28 +138,27 @@ delay(100);
 // PID = true;
 // }
 
-}
 
 
-bool PIDcircle(int xIn, int yIn){
-  int errorX = 0;
-  int errorY = 0;
-  float motorL = 0;
-  float motorR = 0;
- // float kp = 0.05;
+
+bool PIDcircle(int xIn, int yIn) {
+  double error = 51;
+  float PowL = 0;
+  float PowR = 0;
+  float kp = 0.05;
   //float ki = 0.03;
   //int effortA = 0;
   //int effortB = 0;
-       x = (countL + countR)/2;
-       y = (countL - countR)/2;
-  errorX = xIn - x;
-  errorY = yIn - y;
-  while((abs(errorX) > 50)){
-     x = (countL + countR)/2;
-     y = (countL - countR)/2;
-    
-    errorX = xIn - x;
-    errorY = yIn - y;
+  x = (countL + countR) / 2;
+  y = (countL - countR) / 2;
+  int errorX = xIn - x;
+  int errorY = yIn - y;
+
+
+  while (errorX > 10) {
+    x = (countL + countR) / 2;
+    y = (countL - countR) / 2;
+    //error = sqrt(errorX*errorX + errorY);
     Serial.print(x);
     Serial.print(", ");
     Serial.print(xIn);
@@ -176,99 +175,129 @@ bool PIDcircle(int xIn, int yIn){
     Serial.print(", ");
     Serial.print(countL);
     Serial.println();
-    
-    PowL = (kp * (errorX - errorY));
-    PowR = (kp * (errorX + errorY));
-    
-    if(PowL >= 0){
-    digitalWrite(M1,LOW);
-    }else{
-      digitalWrite(M1,HIGH);
+
+    errorX = xIn - x;
+    errorY = yIn - y;
+
+
+    PowL = (kp * (errorX + errorY));
+    PowR = (kp * (errorX - errorY));
+
+    if (PowL >= 0) {
+      digitalWrite(M1, LOW);
+    } else {
+      digitalWrite(M1, HIGH);
     }
 
-    if(PowR >= 0){
-      digitalWrite(M2,LOW);
-    }else{
-      digitalWrite(M2,HIGH);
+    if (PowR >= 0) {
+      digitalWrite(M2, LOW);
+    } else {
+      digitalWrite(M2, HIGH);
     }
-    if(abs(PowL) > 255){
-      effortA = 255;
+    if (abs(PowL) > 255) {
+      PowR = 255;
     }
-    if(abs(PowR) > 255){
-      effortB = 255;
+    if (abs(PowR) > 255) {
+      PowL = 255;
+    }
+    if (abs(PowL) < 100) {
+      PowR = 100;
+    }
+    if (abs(PowR) < 100) {
+      PowL = 100;
     }
     analogWrite(E1, abs(PowL));
     analogWrite(E2, abs(PowR));
     //delay(50);
   }
-    analogWrite(E1, 0);
-    analogWrite(E2, 0);
+  analogWrite(E1, 0);
+  analogWrite(E2, 0);
 }
 
 //safety responses
-void safeR(){
-  while(digitalRead(right)){
+void safeR() {
+  while (digitalRead(right)) {
     digitalWrite(M1, HIGH);
     digitalWrite(M2, HIGH);
-    analogWrite(E1, 255); //PWM Speed Control
-    analogWrite(E2, 255); 
+    analogWrite(E1, 255);  //PWM Speed Control
+    analogWrite(E2, 255);
   }
-  analogWrite(E1, 0); //PWM Speed Control
-  analogWrite(E2, 0); 
+  analogWrite(E1, 0);  //PWM Speed Control
+  analogWrite(E2, 0);
   SetRight = false;
-  //Serial.println(count); 
+  //Serial.println(count);
 }
 
-void safeL(){
-  while(digitalRead(left)){
+void safeL() {
+  while (digitalRead(left)) {
     digitalWrite(M1, LOW);
     digitalWrite(M2, LOW);
-    analogWrite(E1, 255); //PWM Speed Control
+    analogWrite(E1, 255);  //PWM Speed Control
     analogWrite(E2, 255);
-    
   }
-  analogWrite(E1, 0); //PWM Speed Control
-  analogWrite(E2, 0); 
- 
+  analogWrite(E1, 0);  //PWM Speed Control
+  analogWrite(E2, 0);
+
   SetLeft = false;
-  //Serial.println(count); 
+  //Serial.println(count);
 }
-void safeB(){
-  while(digitalRead(bottom)){
-    digitalWrite(M1,LOW);
+void safeB() {
+  while (digitalRead(bottom)) {
+    digitalWrite(M1, LOW);
     digitalWrite(M2, HIGH);
-    analogWrite(E1, 255); //PWM Speed Control
-    analogWrite(E2, 255); 
+    analogWrite(E1, 255);  //PWM Speed Control
+    analogWrite(E2, 255);
   }
-  analogWrite(E1, 0); //PWM Speed Control
-  analogWrite(E2, 0); 
-  
+  analogWrite(E1, 0);  //PWM Speed Control
+  analogWrite(E2, 0);
+
   SetBottom = false;
 }
-void safeT(){
-  while(digitalRead(top)){
-    digitalWrite(M1,HIGH);
+void safeT() {
+  while (digitalRead(top)) {
+    digitalWrite(M1, HIGH);
     digitalWrite(M2, LOW);
-    analogWrite(E1, 255); //PWM Speed Control
-    analogWrite(E2, 255); 
+    analogWrite(E1, 255);  //PWM Speed Control
+    analogWrite(E2, 255);
   }
-  analogWrite(E1, 0); //PWM Speed Control
-  analogWrite(E2, 0); 
+  analogWrite(E1, 0);  //PWM Speed Control
+  analogWrite(E2, 0);
   SetUp = false;
 }
 
-void countA(){
-if(digitalRead(M1)){
-  countL--;}
-else{
-countL++;}
+void countA() {
+  if (digitalRead(M1)) {
+    countL--;
+  } else {
+    countL++;
+  }
 }
 
-void countB(){
-if(digitalRead(M2)){
-  countR--;}
-else{
-countR++;}
-
+void countB() {
+  if (digitalRead(M2)) {
+    countR--;
+  } else {
+    countR++;
+  }
 }
 
+void printstats(int errorX, int errorY, int xIn, int yIn) {
+
+
+  Serial.print(x);
+  Serial.print(", ");
+  Serial.print(xIn);
+  Serial.print(",");
+  Serial.print(y);
+  Serial.print(", ");
+  Serial.print(yIn);
+  Serial.print(", ");
+  Serial.print(errorX);
+  Serial.print(", ");
+  Serial.print(errorY);
+  Serial.print(", ");
+  Serial.print(countR);
+  Serial.print(", ");
+  Serial.print(countL);
+  Serial.println();
+}
