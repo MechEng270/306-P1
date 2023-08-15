@@ -37,14 +37,67 @@ attachInterrupt(digitalPinToInterrupt(left), safeL, HIGH);
 attachInterrupt(digitalPinToInterrupt(right), safeR, HIGH);
 attachInterrupt(digitalPinToInterrupt(bottom), safeB, HIGH);
 attachInterrupt(digitalPinToInterrupt(top), safeT, HIGH);
-
 homie();
 countL = 0;
 countR = 0;
+PIDtest(1000,1000);
+PIDtest(1500,1000);
+PIDtest(1500,1500);
+PIDtest(1000,1500);
+PIDtest(1000,1000);
 
-//goRight();
-//goUp();
-circle(2000,3000,3000);
+//PIDcircle(3000,	0);
+// PIDcircle(3293,	4471);
+// PIDcircle(3574,	4386);
+// PIDcircle(3833,	4247);
+// PIDcircle(4061,	4061);
+// PIDcircle(4247,	3833);
+// PIDcircle(4386,	3574);
+// PIDcircle(4471,	3293);
+// PIDcircle(4500,	3000);
+// PIDcircle(4471,	2707);
+// PIDcircle(4386,	2426);
+// PIDcircle(4247,	2167);
+// PIDcircle(4061,	1939);
+// PIDcircle(3833,	1753);
+
+ //PIDtest(3000,	4500);
+// PIDtest(3293,	4471);
+// PIDtest(3574,	4386);
+// PIDtest(3833,	4247);
+// PIDtest(4061,	4061);
+// PIDtest(4247,	3833);
+// PIDtest(4386,	3574);
+// PIDtest(4471,	3293);
+// PIDtest(4500,	3000);
+// PIDtest(4471,	2707);
+// PIDtest(4386,	2426);
+// PIDtest(4247,	2167);
+// PIDtest(4061,	1939);
+// PIDtest(3833,	1753);
+// PIDtest(3574,	1614);
+// PIDtest(3293,	1529);
+// PIDtest(3000,	1500);
+// PIDtest(2707,	1529);
+// PIDtest(2426,	1614);
+// PIDtest(2167,	1753);
+// PIDtest(1939,	1939);
+// PIDtest(1753,	2167);
+// PIDtest(1614,	2426);
+// PIDtest(1529,	2707);
+// PIDtest(1500,	3000);
+// PIDtest(1529,	3293);
+// PIDtest(1614,	3574);
+// PIDtest(1753,	3833);
+// PIDtest(1939,	4061);
+// PIDtest(2167,	4247);
+// PIDtest(2426,	4386);
+// PIDtest(2707,	4471);
+// PIDtest(3000,	4500);
+
+
+
+//circle(2000,3000,3000.0);
 //PIDtest();
 //SetRight = 1;
 }
@@ -71,23 +124,25 @@ float xO = xIn;
 float x1;
 float y1;
 
-float r = diameter/2;
+float r = diameter/2.0;
 float res = 8;
 int i; // does this need to be an int
 
 
 PIDtest(xIn,yIn);
 
-
-for (i=1;i<res+1;i++){
+x = 0;
+y = 0;
+Serial.println(r);
+for (i=0;i<=res;i++){
  
 
-x1 = r * sin(1.57 * i/res);
-y1 = r * cos(1.57 * i/res);
+x1 = r * sin(1.57 * (i/res));
+y1 = r * cos(1.57 * (i/res));
 
-PIDtest(xIn+x1,yIn - y1);
+PIDtest((x1 + xIn),(y1+yIn));
 //PIDtest(x1,y1);                    
-
+delay(100);
 
 }
 
@@ -168,22 +223,79 @@ while(SetUp){
       Serial.println();
 
 }
+void PIDcircle(int xIn, int yIn){
+  int errorX = 0;
+  int errorY = 0;
+  float integralX = 0;
+  float integralY = 0;
+  float kp = 0.05;
+  float ki = 0.03;
+  int effortA = 0;
+  int effortB = 0;
+       x = (countL + countR)/2;
+       y = (countL - countR)/2;
+  errorX = xIn - x;
+  errorY = yIn - y;
+  while((abs(errorX) > 10) && (abs(errorY) > 10)){
+    
+       x = (countL + countR)/2;
+       y = (countL - countR)/2;
+    errorX = xIn - x;
+    errorY = yIn - y;
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(xIn);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(yIn);
+    Serial.print(", ");
+    Serial.print(errorX);
+    Serial.print(", ");
+    Serial.print(errorY);
+    Serial.print(", ");
+    Serial.print(effortA);
+    Serial.print(", ");
+    Serial.print(effortB);
+    Serial.println();
+    integralX = errorX + integralX;
+    integralY = errorY + integralY;
+    effortA = (kp * (errorX + errorY));
+    effortB = (kp * (errorX - errorY));
+    if(effortA >= 0){
+    digitalWrite(M1,LOW);
+    }else{
+      digitalWrite(M1,HIGH);
+    }
 
+    if(effortB >= 0){
+      digitalWrite(M2,LOW);
+    }else{
+      digitalWrite(M2,HIGH);
+    }
+    if(abs(effortA) > 255){
+      effortA = 255;
+    }
+    if(abs(effortB) > 255){
+      effortB = 255;
+    }
+    analogWrite(E1, abs(effortA));
+    analogWrite(E2, abs(effortB));
+    delay(50);
+  }
+    analogWrite(E1, 0);
+    analogWrite(E2, 0);
+}
 // should we have 1 or 2 PID controllers
-void PIDtest(float xIn, float yIn){
+void PIDtest(int xIn, int yIn){
   float error, integral, lastE, der = 0, effort;
-  //float xIn = 6000.0;
-  //float yIn = 2000.0;
-  float kp = 2, ki = 1, kd = 0.3;
+  float kp = .05, ki = .03, kd = 0.3;
       x = (countL + countR)/2;
+       y = (countL - countR)/2;
       error = xIn - x;
-  while(error > (xIn * .02)){
-    // Serial.print(error);
-    // Serial.print(",  ");
-    // Serial.print(effort);
-    // Serial.print(",  ");
-    // Serial.println(x);
-      x = (countL + countR)/2;
+  while(abs(error) > 10){
+       x = (countL + countR)/2;
+       y = (countL - countR)/2;
       error = xIn - x;
       integral = integral + error;
       der = error - lastE;
@@ -196,25 +308,44 @@ void PIDtest(float xIn, float yIn){
       digitalWrite(M2,HIGH);
 
   }
-  effort = 255 * ((kp * error) + (ki * integral));
-  if(effort > 255){
-    effort = 255;
+  effort = ((kp * error) + (ki * integral));
+  if(abs(effort) > 255){
+    if(effort > 0) {effort = 255;}
+    else{effort = -255;}
   }
-      analogWrite(E1, effort);
-      analogWrite(E2, effort);
-    
+      analogWrite(E1, abs(effort));
+      analogWrite(E2, abs(effort));
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(xIn);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(yIn);
+         Serial.print(", ");
+    Serial.print(error);
+    Serial.println();
     delay(50); //does this fuck with interupts
   }
+  
+      x = (countL + countR)/2;
       y = (countL - countR)/2;
+       Serial.print(x);
+    Serial.print(", ");
+    Serial.print(xIn);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(yIn);
+     Serial.print(", ");
+    Serial.print(error);
+    Serial.println();
       error = yIn - y;
 
-  while(error > (yIn * .02)){
-    // Serial.print(error);
-    // Serial.print(",  ");
-    // Serial.print(effort);
-    // Serial.print(",  ");
-    // Serial.println(y);
-      y = (countL - countR)/2;
+  while(abs(error) > 10){
+
+       x = (countL + countR)/2;
+       y = (countL - countR)/2;
       error = yIn - y;
       integral = integral + error;
       der = error - lastE;
@@ -227,27 +358,35 @@ void PIDtest(float xIn, float yIn){
       digitalWrite(M2, LOW);
 
   }
-  effort = 255 * ((kp * error) + (ki * integral));
-  if(effort > 255){
-    effort = 255;
+  effort = ((kp * error) + (ki * integral));
+ if(abs(effort) > 255){
+    if(effort > 0) {effort = 255;}
+    else{effort = -255;}
   }
-      analogWrite(E1, effort);
-      analogWrite(E2, effort);
-    
+      analogWrite(E1, abs(effort));
+      analogWrite(E2, abs(effort));
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(xIn);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(yIn);
+     Serial.print(", ");
+    Serial.print(error);
+    Serial.println();
     delay(50); //does this fuck with interupts
   }
-      // Serial.print(error);
-      // Serial.print(",  ");
-      // Serial.print(effort);
-      // Serial.print(",  ");
-      // Serial.println(x);
-      // analogWrite(E1, 0);
-      // analogWrite(E2, 0);
-      // Serial.print(error);
-      // Serial.print(",  ");
-      // Serial.println(x);
-      
-
+   Serial.print(x);
+    Serial.print(", ");
+    Serial.print(xIn);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(yIn);
+    Serial.print(", ");
+    Serial.print(error);
+    Serial.println();
 }
 
 void homie(){
