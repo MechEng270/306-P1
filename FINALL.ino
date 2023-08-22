@@ -37,7 +37,16 @@ void setup() {
   homie();
   countL = 0;
   countR = 0;
-
+  
+  PIDtest(40, 41);
+  //delay(2000);
+  PIDtest(90, 40);
+  //delay(500);
+  PIDtest(90, 100);
+  //delay(500);
+  PIDtest(40, 100);
+  //delay(500);
+  PIDtest(41, 40);
 
   float Xarray[] = {
     // 120.0000,
@@ -171,23 +180,22 @@ void setup() {
     // 120.0000,
     // 12.00000
 
-
 120,
-120.1444582,
-120.5764416,
-121.2917899,
-122.283614,
-123.5423621,
-125.0559116,
-126.8096864,
-128.7867966,
-130.9682015,
-133.332893,
-135.8580979,
-138.519497,
-141.2914597,
-144.1472903,
-147.0594858,
+120.6444582,
+121.5764416,
+122.7917899,
+124.283614,
+125.5423621,
+127.0559116,
+128.8096864,
+130.7867966,
+132.9682015,
+135.332893,
+137.8580979,
+140.519497,
+142.7914597,
+145.1472903,
+147.5594858,
 150,
 152.9405142,
 155.8527097,
@@ -205,21 +213,22 @@ void setup() {
 179.4235584,
 179.8555418,
 180,
-179.8555418,
-179.4235584,
-178.7082101,
-177.716386,
-176.4576379,
-174.9440884,
-173.1903136,
-171.2132034,
-169.0317985,
-166.667107,
-164.1419021,
-161.480503,
-158.7085403,
-155.8527097,
-152.9405142,
+179.3555418,
+178.4235584,
+177.7082101,
+176.716386,
+175.4576379,
+173.9440884,
+172.1903136,
+170.2132034,
+168.0317985,
+165.667107,
+163.1419021,
+160.480503,
+157.7085403,
+154.8527097,
+152.4405142,
+
 150,
 147.0594858,
 144.1472903,
@@ -237,8 +246,9 @@ void setup() {
 120.5764416,
 120.1444582,
 120,
+120,
+120,
 120
-
 
   };
 
@@ -375,24 +385,24 @@ void setup() {
 
 
 70,
-67.05948579,
-64.14729034,
-61.29145968,
-58.51949703,
-55.8580979,
-53.33289301,
-50.96820148,
-48.78679656,
-46.8096864,
-45.05591163,
-43.54236207,
-42.28361402,
-41.29178993,
-40.57644159,
-40.1444582,
-40,
-40.1444582,
-40.57644159,
+67.55948579,
+65.14729034,
+62.79145968,
+60.51949703,
+57.8580979,
+55.33289301,
+52.96820148,
+50.78679656,
+48.8096864,
+47.05591163,
+45.54236207,
+44.28361402,
+42.79178993,
+41.57644159,
+41.0444582,
+40.7,
+40.7444582,
+41.07644159,
 41.29178993,
 42.28361402,
 43.54236207,
@@ -407,21 +417,22 @@ void setup() {
 64.14729034,
 67.05948579,
 70,
-72.94051421,
-75.85270966,
-78.70854032,
-81.48050297,
-84.1419021,
-86.66710699,
-89.03179852,
-91.21320344,
-93.1903136,
-94.94408837,
-96.45763793,
-97.71638598,
-98.70821007,
-99.42355841,
-99.8555418,
+72.44051421,
+74.85270966,
+77.70854032,
+80.48050297,
+83.1419021,
+85.66710699,
+88.03179852,
+90.21320344,
+92.1903136,
+93.94408837,
+95.45763793,
+96.71638598,
+97.70821007,
+98.42355841,
+99.3555418,
+
 100,
 99.8555418,
 99.42355841,
@@ -439,22 +450,14 @@ void setup() {
 75.85270966,
 72.94051421,
 70,
-67.05948579
+68.05948579,
+66.14729034,
+63.29145968
   };
 
-  //test no delay adn higher kp
-  // PIDtest(40, 41);
-  // //delay(2000);
-  // PIDtest(90, 40);
-  // //delay(500);
-  // PIDtest(90, 100);
-  // //delay(500);
-  // PIDtest(40, 100);
-  // //delay(500);
-  // PIDtest(41, 40);
 
-  PIDtest(150,70);
-  for(int i = 0; i < 66; i++){
+
+  for(int i = 0; i < 68; i++){
     PIDcircle(Xarray[i], Yarray[i]);
   }
 }
@@ -610,14 +613,21 @@ void PIDtest(float xIn, float yIn) {
 
 void PIDcircle(float xxIn, float yyIn) {
 
-int  xIn = xxIn * 44;
-int  yIn = yyIn * 42;
+int  xIn = xxIn * 40;
+int  yIn = yyIn * 39;
   int errorX = 0;
   int errorY = 0;
   float integralX = 0;
   float integralY = 0;
-  float kp = 1.5;
-  float ki = 0.0005;
+   float lastEY = 0;
+     float lastEX = 0;
+float derivativeX = 0;
+float derivativeY = 0;
+
+
+  float kp = 1.48; //1.5
+  float ki = 0.000; //0
+  float kd = 0.05; //0.05
   int effortA = 0;
   int effortB = 0;
   x = (countL + countR) / 2;
@@ -630,22 +640,38 @@ int  yIn = yyIn * 42;
 
     errorX = xIn - x;
     errorY = yIn - y;
-    Serial.print(x);
-    Serial.print(", ");
-    Serial.print(xIn);
-    Serial.print(",");
-    Serial.print(y);
-    Serial.print(", ");
-    Serial.print(yIn);
-    Serial.print(", ");
-    Serial.print(errorX);
-    Serial.print(", ");
-    Serial.print(errorY);
-    Serial.print(", ");
-    Serial.print(effortA);
-    Serial.print(", ");
-    Serial.print(effortB);
+    // Serial.print(x);
+    // Serial.print(", ");
+    // Serial.print(xIn);
+    // Serial.print(",");
+    // Serial.print(y);
+    // Serial.print(", ");
+    // Serial.print(yIn);
+    // Serial.print(", ");
+    // Serial.print(errorX);
+    // Serial.print(", ");
+    // Serial.print(errorY);
+    // Serial.print(", ");
+    // Serial.print(effortA);
+    // Serial.print(", ");
+    // Serial.print(effortB);
+    // Serial.print(", ");
+    // Serial.print(" Px = ");
+    // Serial.print((kp * (errorX + errorY)));
+    // Serial.print(" Py = ");
+    // Serial.print((kp * (errorX - errorY)));
+    // Serial.print(", ");
+    // Serial.print(" Ix = ");
+    // Serial.print((ki * (integralX + integralY)));
+    // Serial.print(" Iy = ");
+    // Serial.print((ki * (integralX - integralY)));
+    // Serial.print(", ");
+    // Serial.print(" Dx = ");
+    // Serial.print((kd * (derivativeX + derivativeY)));
+    // Serial.print(" Dy = ");
+    // Serial.print((kd * (derivativeX - derivativeY)));
     Serial.println();
+
     integralX = errorX + integralX;
     integralY = errorY + integralY;
     if (abs(integralX) > 1500) {
@@ -663,8 +689,13 @@ int  yIn = yyIn * 42;
         integralY = -1500;
       }
     }
-    effortA = (kp * (errorX + errorY)) + (ki * (integralX + integralY));
-    effortB = (kp * (errorX - errorY)) + (ki * (integralX - integralY));
+    derivativeX = errorX - lastEX;
+    lastEX = errorX;
+    derivativeY = errorY - lastEY;
+    lastEY = errorY;
+
+    effortA = (kp * (errorX + errorY)) + (ki * (integralX + integralY))+ (kd * (derivativeX + derivativeY));
+    effortB = (kp * (errorX - errorY)) + (ki * (integralX - integralY))+ (kd * (derivativeX - derivativeY));
 
 
     if (effortA >= 0) {
